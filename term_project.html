@@ -8,6 +8,7 @@
     <title>2155106 염성현 성적 관리 사이트</title>
     <script src="https://code.jquery.com/jquery-3.6.4.js"></script>
     <script src="https://code.jquery.com/jquery-migrate-3.4.1.js"></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
@@ -41,7 +42,16 @@
         <!--유저 회원 리스트 관리 [모든 유저 아이디 검색]-->
         <h2></h2>
         <br><button id="logout">로그아웃</button></br>
-        <div id="user_list"></div>
+        <div id="user_list">
+            <h3>유저 정보</h3>
+            <select id="user_select">
+                <option value="">유저 선택</option>
+            </select>
+            <div id="selected_user_info"></div>
+            <button id="selected_user_delete" style="display: none;">해당 회원 삭제</button>
+        </div>
+
+
 
     </div>
 
@@ -58,11 +68,18 @@
                 admin: 'admin',
                 momo2413: 'momo2413'
             }
-            //아이디 및 이름 저장
+            //이름 저장
             var usersName = {
                 admin: '관리자',
                 momo2413: '성현'
             }
+
+            //과목,학점  저장
+            var subjectList = {
+                '프로그래밍언어론': 3
+            }
+
+            //
 
             //로그인 하러가기
             var showLoginHandler = function () {
@@ -135,8 +152,10 @@
                 $('#part3').hide();
                 $('#part1').show();
 
-                
+
             }
+
+
 
             //로그인 시 로그아웃 버튼, 환영 문구 추가
             var successLogin = function (partNum, id) {
@@ -145,13 +164,57 @@
 
                 // 관리자로 로그인한 경우 유저 정보 출력
                 if (id === 'admin') {
-                    $('#user_list').empty().append('<h3>유저 정보</h3>');
-                    for (var user in usersName) {
-                        $('#user_list').append('<p>id: ' + user + ', password: ' + usersList[user] + ', 이름: ' + usersName[user] + '</p>');
-                    }
+                    viewUserList();
                 }
             }
-            
+
+            //선택한 회원 유저
+            var selectedUser;
+
+            //관리자 페이지 : 유저 정보
+            var userSelectHandler = function () {
+                selectedUser = $('#user_select').val();
+
+                if (selectedUser) {
+                    var userInfo = '<br>아이디: ' + selectedUser + ', 비밀번호: ' + usersList[selectedUser] + ', 이름: ' + usersName[selectedUser] + '</br>';
+                    $('#selected_user_info').html(userInfo);
+                    //삭제 버튼 show
+                    $('#selected_user_delete').show();
+
+                } else {
+                    $('#selected_user_info').empty();
+                }
+            }
+            //유저 정보 출력 
+            var viewUserList = function () {
+                $('#user_select').empty();
+                $('#checkbox_list').empty(); //checkBox 리스트 초기화
+                for (var user in usersName) {
+                    $('#user_select').append('<option value="' + user + '">' + '이름: ' + usersName[user] + ' (아이디: ' + user + ')</option>');
+                }
+            }
+
+
+            //회원 삭제 이벤트
+            var userDeleteHandler = function () {
+                var isDelete = confirm('정말 삭제하시겠습니까?');
+                if (isDelete) {
+                    if (selectedUser === 'admin') {
+                        alert('관리자는 삭제될 수 없습니다.');
+                        return;
+                    }
+                    delete usersList[selectedUser];
+                    delete usersList;
+                    delete usersName[selectedUser];
+                    alert(`${selectedUser} 아이디를 성공적으로 삭제하였습니다.`);
+                    //삭제 후 갱신
+                    viewUserList();
+                    $('#user_select').prop('selectedIndex', 0);
+                    selectedUser = $('#user_select option:first').val();
+                    $('#selected_user_info').html('');
+                } else alert('취소하셨습니다.');
+            }
+
 
 
             //로그인 구현
@@ -170,7 +233,7 @@
                         $('#login_password').val('');
                         $('#part1').hide();
                         $('#part2').show();
-                        
+
                         alert('로그인 성공: 관리자 페이지로 접속하셨습니다.');
                         successLogin(2, id);
                     }
@@ -217,8 +280,13 @@
 
 
 
-            /** part2 **/
-            //회원 가입 유저 목록 갱신
+            /** part2 
+             1. 선택한 유저 정보 출력
+             2. 선택한 유저 회원 삭제
+             3. 선택한 유저 비밀번호 강제 변경
+             4. 과목 추가 (이름, 학점)
+             5. 과목 목록
+             6. 선택한 유저 - 과목 선택 - 점수 입력 - 추가,업데이트,삭제**/
 
 
 
@@ -227,7 +295,9 @@
             $('#showRegisterSection').on('click', showRegisterHandler)
             $('#login').on('click', loginHandler)
             $('#register').on('click', registerHandler)
+            $('#user_select').on('change', userSelectHandler);
 
+            $('#selected_user_delete').on('click', userDeleteHandler);
         });
     </script>
 </body>
