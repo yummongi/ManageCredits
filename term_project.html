@@ -41,14 +41,23 @@
     <div id="part2" style="display: none;border: 1px solid black;">
         <!--유저 회원 리스트 관리 [모든 유저 아이디 검색]-->
         <h2></h2>
-        <br><button id="logout">로그아웃</button></br>
+        <br><button class="logout">로그아웃</button></br>
         <div id="user_list">
             <h3>유저 정보</h3>
             <select id="user_select">
                 <option value="">유저 선택</option>
             </select>
             <div id="selected_user_info"></div>
-            <button id="selected_user_delete" style="display: none;">해당 회원 삭제</button>
+            <button id="selected_user_delete" style="display: none;">회원 삭제</button>
+            <button id="selected_user_update" style="display: none;">비밀번호 강제 변경</button>
+
+        </div>
+        <!-- 커스텀 과목 및 해당 과목에 대한 학점 추가-->
+        <div id = "subject_list">
+            <h3>과목 추가</h3>
+            <input type="text" id = "subject" placeholder="추가할 과목 입력">
+            <input type="text" id = "credits" placeholder="해당 과목에 대한 학점">
+            <button id = "add_subject">과목 추가</button>
         </div>
 
 
@@ -57,7 +66,8 @@
 
     <!-- part3 일반 사용자 화면 -->
     <div id="part3" style="display: none;">
-
+        <h2></h2>
+        <br><button class="logout">로그아웃</button></br>
     </div>
 
     <script>
@@ -74,10 +84,23 @@
                 momo2413: '성현'
             }
 
+            //로그인 횟수 저장
+            var usersLoginCount = {
+                admin: 0,
+                momo2413: 0
+            }
+
+            //최근 로그인 날짜
+            var usersLoginDate = {
+                admin: new Date(),
+                momo2413: new Date()
+            }
+
             //과목,학점  저장
             var subjectList = {
                 '프로그래밍언어론': 3
             }
+
 
             //
 
@@ -151,21 +174,27 @@
                 $('#part2').hide();
                 $('#part3').hide();
                 $('#part1').show();
-
-
             }
-
-
 
             //로그인 시 로그아웃 버튼, 환영 문구 추가
             var successLogin = function (partNum, id) {
-                $('#part2 h2').text(usersName[id] + '님 어서오세요!')
-                $('#logout').on('click', logoutHandler)
+                $(`#part${partNum} h2`).text(usersName[id] + '님 어서오세요!')
+                $(`.logout`).on('click', logoutHandler)
 
                 // 관리자로 로그인한 경우 유저 정보 출력
                 if (id === 'admin') {
                     viewUserList();
                 }
+            }
+            // 날짜 포맷팅 함수
+            function formatDate(date) {
+                var year = date.getFullYear();
+                var month = String(date.getMonth() + 1).padStart(2, '0');
+                var day = String(date.getDate()).padStart(2, '0');
+                var hours = String(date.getHours()).padStart(2, '0');
+                var minutes = String(date.getMinutes()).padStart(2, '0');
+
+                return `${year}/${month}/${day} ${hours}:${minutes}`;
             }
 
             //선택한 회원 유저
@@ -176,10 +205,12 @@
                 selectedUser = $('#user_select').val();
 
                 if (selectedUser) {
-                    var userInfo = '<br>아이디: ' + selectedUser + ', 비밀번호: ' + usersList[selectedUser] + ', 이름: ' + usersName[selectedUser] + '</br>';
+                    var userInfo = `<br>아이디: ${selectedUser}, 비밀번호: ${usersList[selectedUser]} 이름: ${usersName[selectedUser]},
+                     로그인 횟수: ${usersLoginCount[selectedUser]}, 로그인 시간: ${formatDate(usersLoginDate[selectedUser])} </br>`;
                     $('#selected_user_info').html(userInfo);
-                    //삭제 버튼 show
+                    //선택박스 선택 시 버튼 활성화
                     $('#selected_user_delete').show();
+                    $('#selected_user_update').show();
 
                 } else {
                     $('#selected_user_info').empty();
@@ -192,10 +223,11 @@
                 for (var user in usersName) {
                     $('#user_select').append('<option value="' + user + '">' + '이름: ' + usersName[user] + ' (아이디: ' + user + ')</option>');
                 }
+                $('#selected_user_info').html('');
             }
 
 
-            //회원 삭제 이벤트
+            //회원 삭제 이벤트 핸들러
             var userDeleteHandler = function () {
                 var isDelete = confirm('정말 삭제하시겠습니까?');
                 if (isDelete) {
@@ -204,7 +236,6 @@
                         return;
                     }
                     delete usersList[selectedUser];
-                    delete usersList;
                     delete usersName[selectedUser];
                     alert(`${selectedUser} 아이디를 성공적으로 삭제하였습니다.`);
                     //삭제 후 갱신
@@ -215,6 +246,22 @@
                 } else alert('취소하셨습니다.');
             }
 
+            //회원 비밀번호 강제 변경 이벤트 핸들러
+            var userUpdateHandler = function () {
+                var update_password = prompt("강제로 변경할 비밀번호를 입력해주세요");
+                var isUpdate = confirm(`${selectedUser} 아이디를 ${update_password} 비밀번호로 강제 변경하시겠습니까?`);
+                if (isUpdate) {
+                    if (selectedUser === 'admin') {
+                        alert('관리자 비밀번호는 변경할 수 없습니다.');
+                        return;
+                    }
+                    if (validateInput(selectedUser, update_password)) {
+                        //비밀번호 변경
+                        usersList[selectedUser] = update_password;
+                        alert('성공적으로 변경하셨습니다.');
+                    }
+                }
+            }
 
 
             //로그인 구현
@@ -228,21 +275,24 @@
                 }
                 //로그인 성공 
                 else if (usersList[id] && usersList[id] === password) {
+                    $('#login_id').val('');
+                    $('#login_password').val('');
+                    $('#part1').hide();
                     if (id == 'admin') {
-                        $('#login_id').val('');
-                        $('#login_password').val('');
-                        $('#part1').hide();
                         $('#part2').show();
-
                         alert('로그인 성공: 관리자 페이지로 접속하셨습니다.');
+                        //로그인 횟수
+                        usersLoginCount[id] = ++usersLoginCount[id];
+                        //최근 로그인 날짜
+                        usersLoginDate[id] = new Date();
                         successLogin(2, id);
                     }
                     else {
-                        $('#login_id').val('');
-                        $('#login_password').val('');
-                        $('#part1').hide();
                         $('#part3').show();
                         alert(`로그인 성공: ${usersName[id]}님 어서오세요! 자신의 학점을 확인할 수 있습니다.`);
+                        usersLoginCount[id] = ++usersLoginCount[id];
+                        //최근 로그인 날짜
+                        usersLoginDate[id] = new Date();
                         successLogin(3, id);
                     }
                 }
@@ -265,6 +315,8 @@
                 else if (!usersList[id]) {
                     usersList[id] = password;
                     usersName[id] = name;
+                    usersLoginCount[id] = 0;
+                    usersLoginDate[id] = new Date();
                     alert(`${usersName[id]}님 환영합니다. 회원가입에 성공하셨습니다! 로그인 해주세요!`);
                     $('#registerSection').hide();
                     $('#loginSection').show();
@@ -281,9 +333,9 @@
 
 
             /** part2 
-             1. 선택한 유저 정보 출력
+             1. 선택한 유저 정보 출력 
              2. 선택한 유저 회원 삭제
-             3. 선택한 유저 비밀번호 강제 변경
+             3. 선택한 유저 비밀번호 강제 변경 (input 칸 2개 (다시 입력) 로 입력)
              4. 과목 추가 (이름, 학점)
              5. 과목 목록
              6. 선택한 유저 - 과목 선택 - 점수 입력 - 추가,업데이트,삭제**/
@@ -296,8 +348,8 @@
             $('#login').on('click', loginHandler)
             $('#register').on('click', registerHandler)
             $('#user_select').on('change', userSelectHandler);
-
             $('#selected_user_delete').on('click', userDeleteHandler);
+            $('#selected_user_update').on('click', userUpdateHandler);
         });
     </script>
 </body>
