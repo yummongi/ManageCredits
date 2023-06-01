@@ -103,6 +103,7 @@
     <div id="part3" style="display: none;">
         <h2></h2>
         <br><button class="logout">로그아웃</button></br>
+        <div id="userScoreSection"></div>
     </div>
 
     <script>
@@ -153,7 +154,18 @@
             // };
 
             //성적 저장
-            var usersScores = {};
+            var usersScores = {
+                'momo2413': {
+                    '컴퓨터공학과': {
+                        '프로그래밍언어론': { '점수': 95, '학점': 'A+' },
+                        '데이터베이스': { '점수': 85, '학점': 'B+' },
+                        // ... 다른 과목들
+                    },
+                    // ... 다른 학과
+                },
+                // ... 다른 사용자들
+            };
+
 
 
             //로그인 하러가기
@@ -226,6 +238,40 @@
                 $('#part1').show();
             }
 
+            /**part3**/
+            // 일반 사용자 페이지 : 성적 정보
+            // 일반 사용자 페이지 : 성적 정보
+            var viewUserScore = function (id) {
+                var userScores = usersScores[id];
+                console.log("User scores: ", userScores); // Debug line
+                $('#userScoreSection').empty();
+
+                var totalScore = 0;
+                var subjectCount = 0;
+
+                for (var dept in userScores) {
+                    var scores = userScores[dept];
+                    for (var subject in scores) {
+                        var score = scores[subject];
+                        if (score !== null) {
+                            totalScore += score;
+                            subjectCount += 1;
+                            var grade = calculateGradePoint(score);  // 점수에 따른 등급을 구하는 함수를 추가해야 합니다.
+                            var credit = subjectList[dept][subject];
+                            $('#userScoreSection').append(`<p>${dept} ${subject} (${credit}학점) : ${score}점 ${grade}</p>`);
+
+                            var averageScore = totalScore / subjectCount;
+                            $('#userScoreSection').append(`<p>평균 점수: ${averageScore}</p>`);
+                        }
+                        else $('#userScoreSection').html('<h1>성적 정보가 없습니다. 관리자에게 문의하세요</h1>')
+                    }
+                }
+
+
+            }
+
+
+
             //로그인 시 로그아웃 버튼, 환영 문구 추가
             var successLogin = function (partNum, id) {
                 $(`#part${partNum} h2`).text(usersName[id] + '님 어서오세요!')
@@ -235,7 +281,13 @@
                 if (id === 'admin') {
                     viewUserList();
                 }
+                // 일반 사용자로 로그인한 경우 유저 정보 출력
+                else {
+                    viewUserScore(id);
+                }
             }
+
+
             // 날짜 포맷팅 함수
             function formatDate(date) {
                 var year = date.getFullYear();
@@ -443,8 +495,7 @@
                         // 초기 점수 드롭다운 갱신
                         updateScoreSelects();
 
-                        // 초기화
-                        initializeUserScores();
+
 
                         // 초기화
                         updateScoreDropdown();
@@ -747,6 +798,11 @@
                     $('#set_scores').prop('disabled', true);
                 }
             });
+
+
+
+            // 초기화
+            initializeUserScores();
             //이벤트 핸들러 등록
             $('#showLoginSection').on('click', showLoginHandler)
             $('#showRegisterSection').on('click', showRegisterHandler)
