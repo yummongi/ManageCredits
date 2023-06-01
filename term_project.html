@@ -107,7 +107,7 @@
 
     <script>
         $(function () {
-            
+
             /** part1 **/
             //아이디 및 비밀번호 저장
             var usersList = {
@@ -150,19 +150,33 @@
                 }
             };
 
-
-
-            //로그인 하러가기
-            var showLoginHandler = function () {
-                $('#registerSection').hide();
-                $('#loginSection').show();
+            // 성적에 따른 학점 계산 함수
+            var calculateGradePoint = function (score) {
+                var gradePoint;
+                if (score >= 95) {
+                    gradePoint = 'A+';
+                } else if (score >= 90) {
+                    gradePoint = 'A';
+                } else if (score >= 85) {
+                    gradePoint = 'B+';
+                } else if (score >= 80) {
+                    gradePoint = 'B';
+                } else if (score >= 75) {
+                    gradePoint = 'C+';
+                } else if (score >= 70) {
+                    gradePoint = 'C';
+                } else if (score >= 65) {
+                    gradePoint = 'D+';
+                } else if (score >= 60) {
+                    gradePoint = 'D';
+                } else {
+                    gradePoint = 'F';
+                }
+                return gradePoint;
             }
 
-            //회원가입 하러가기
-            var showRegisterHandler = function () {
-                $('#loginSection').hide();
-                $('#registerSection').show();
-            }
+
+
 
 
             //아이디 체크 (영문자 또는 영문 숫자 3~20자)
@@ -315,112 +329,7 @@
             }
 
 
-            //회원 삭제 이벤트 핸들러
-            var userDeleteHandler = function () {
-                var isDelete = confirm('정말 삭제하시겠습니까?');
-                if (isDelete) {
-                    if (selectedUser === 'admin') {
-                        alert('관리자는 삭제될 수 없습니다.');
-                        return;
-                    }
-                    delete usersList[selectedUser];
-                    delete usersName[selectedUser];
-                    alert(`${selectedUser} 아이디를 성공적으로 삭제하였습니다.`);
-                    //삭제 후 갱신
-                    viewUserList();
-                    $('#user_select').prop('selectedIndex', 0);
-                    selectedUser = $('#user_select option:first').val();
-                    $('#selected_user_info').html('');
-                } else alert('취소하셨습니다.');
-            }
-
-            //회원 비밀번호 강제 변경 이벤트 핸들러
-            var userUpdateHandler = function () {
-                var update_password = prompt("강제로 변경할 비밀번호를 입력해주세요");
-                if (update_password == null) return;
-                var isUpdate = confirm(`${selectedUser} 아이디를 ${update_password} 비밀번호로 강제 변경하시겠습니까?`);
-
-                if (isUpdate) {
-                    if (selectedUser === 'admin') {
-                        alert('관리자 비밀번호는 변경할 수 없습니다.');
-                        return;
-                    }
-                    if (validateInput(selectedUser, update_password)) {
-                        //비밀번호 변경
-                        usersList[selectedUser] = update_password;
-                        alert('성공적으로 변경하셨습니다.');
-                    }
-                }
-            }
-
-            // 학과 추가 기능 핸들러 (버튼)
-            var addDeptHandler = function () {
-                var dept = $('#input_dept').val();
-
-                if (dept && !subjectList[dept]) {
-                    //학과 deptList 객체에 추가
-                    subjectList[dept] = {};
-                    alert('학과가 추가되었습니다.');
-                    $('#input_dept').val('');
-                    //업데이트 드롭다운
-                    deptUpdateHandler();
-                    //점수 학과 드롭다운도 업데이트
-                    updateScoreDropdown();
-                }
-                else if (subjectList.hasOwnProperty(dept)) {
-                    alert('이미 존재하는 학과입니다.');
-                } else {
-                    alert('학과를 입력해주세요.');
-                }
-            };
-            //학과 삭제 기능 핸들러 
-
-            var removeDeptHandler = function () {
-                var dept = $('.dept_list').val();
-                var isDelete = confirm(`정말 ${dept} 학과를 삭제하시겠습니까?`);
-                if (isDelete) {
-                    delete subjectList[dept];
-                    deptUpdateHandler();
-                    displaySubjectList();
-                    alert(`${dept} 학과를 성공적으로 삭제하였습니다`);
-                }
-                else alert('취소하셨습니다.');
-            }
-
-            //선택한 학과 체크박스
-
-
-            //학과 체크박스 업데이트
-            var deptUpdateHandler = function () {
-
-                var deptList = $('.dept_list');
-                deptList.empty(); //checkBox 리스트 초기화
-                for (var dept in subjectList) {
-                    deptList.append(`<option value='${dept}'>${dept}</option>`);
-                }
-            }
-
-
-
-            // 과목 추가 이벤트 핸들러
-            var addSubjectHandler = function () {
-                var dept = $('.dept_list').val();
-                var subject = $('#input_subject').val();
-                var credits = $('#input_credits').val();
-
-                if (isNaN(credits)) alert('학점에는 숫자만 입력해주세요');
-
-                if (dept && subject && credits) {
-                    subjectList[dept][subject] = parseInt(credits);
-                    $('#input_subject').val('');
-                    $('#input_credits').val('');
-                    displaySubjectList();
-                    //드롭다운 갱신 (성적 영역)
-                    updateScoreDropdown();
-                } else {
-                    alert('과목과 학점을 모두 입력해주세요.');
-                }
-            }
+ 
 
 
 
@@ -437,86 +346,7 @@
             };
 
 
-            //로그인 구현
-            var loginHandler = function () {
-                var id = $('#login_id').val();
-                var password = $('#login_password').val();
 
-                // 유효성 검사
-                if (!validateInput(id, password)) {
-                    return;
-                }
-                //로그인 성공 
-                else if (usersList[id] && usersList[id] === password) {
-                    $('#login_id').val('');
-                    $('#login_password').val('');
-                    $('#part1').hide();
-                    if (id == 'admin') {
-                        $('#part2').show();
-                        alert('로그인 성공: 관리자 페이지로 접속하셨습니다.');
-                        //로그인 횟수
-                        usersLoginCount[id] = ++usersLoginCount[id];
-                        //최근 로그인 날짜
-                        usersLoginDate[id] = new Date();
-                        successLogin(2, id);
-
-                        // 초기 과목 리스트 출력
-                        displaySubjectList();
-
-                        // 초기 학과 리스트 출력
-                        deptUpdateHandler();
-
-                        // 초기 점수 드롭다운 갱신
-                        updateScoreSelects();
-
-
-
-                        // 초기화
-                        updateScoreDropdown();
-
-                    }
-                    else {
-                        $('#part3').show();
-                        alert(`로그인 성공: ${usersName[id]}님 어서오세요! 자신의 학점을 확인할 수 있습니다.`);
-                        usersLoginCount[id] = ++usersLoginCount[id];
-                        //최근 로그인 날짜
-                        usersLoginDate[id] = new Date();
-                        successLogin(3, id);
-                    }
-                }
-                else alert("아이디가 존재하지 않거나, 아이디 또는 비밀번호가 틀립니다.");
-            }
-
-
-            //회원가입 구현
-            var registerHandler = function () {
-                var id = $('#register_id').val();
-                var password = $('#register_password').val();
-                var name = $('#register_name').val();
-
-                // 유효성 검사
-                if (!validateInput(id, password, name)) {
-                    return;
-                }
-
-                //회원가입 성공
-                else if (!usersList[id]) {
-                    usersList[id] = password;
-                    usersName[id] = name;
-                    usersLoginCount[id] = 0;
-                    usersLoginDate[id] = new Date();
-                    alert(`${usersName[id]}님 환영합니다. 회원가입에 성공하셨습니다! 로그인 해주세요!`);
-                    $('#registerSection').hide();
-                    $('#loginSection').show();
-                    $('#register_id').val('');
-                    $('#register_password').val('');
-                    $('#register_name').val('');
-
-                } else {
-                    alert('이미 존재하는 아이디입니다.');
-                }
-
-            }
 
             /** part2 
              1. 선택한 유저 정보 출력 
@@ -539,7 +369,8 @@
              *   }
              * };
              * **/
-
+            
+            //usersScores 객체 초기화
             var initializeUserScores = function () {
                 for (var user in usersList) {
                     usersScores[user] = {};
@@ -598,6 +429,214 @@
             }
 
 
+
+
+
+            //성적 영역 드롭다운 업데이트
+            var updateScoreDropdown = function () {
+                var deptDropdown = $('#score_dept');
+                var subjectDropdown = $('#score_subject');
+                var userDropdown = $('#score_users');
+
+                var selectedDept = deptDropdown.val();
+                var selectedSubject = subjectDropdown.val();
+                var selectedUser = userDropdown.val();
+
+                // 기존 옵션 초기화
+                deptDropdown.empty();
+                subjectDropdown.empty();
+                userDropdown.empty();
+
+                // 기본 옵션 추가
+                deptDropdown.append('<option value="">학과 선택</option>');
+                subjectDropdown.append('<option value="">과목 선택</option>');
+                userDropdown.append('<option value="">회원 선택</option>');
+
+                // subjectList의 각 학과에 대한 옵션 추가
+                for (var dept in subjectList) {
+                    deptDropdown.append('<option value="' + dept + '">' + dept + '</option>');
+                }
+
+                // 이전에 선택된 학과가 여전히 존재하는 경우, 선택 상태 복원
+                if (selectedDept && subjectList[selectedDept]) {
+                    deptDropdown.val(selectedDept);
+
+                    var subjects = subjectList[selectedDept];
+                    for (var subject in subjects) {
+                        subjectDropdown.append('<option value="' + subject + '">' + subject + '</option>');
+                    }
+
+                    if (selectedSubject && subjects[selectedSubject]) {
+                        subjectDropdown.val(selectedSubject);
+                    }
+                }
+
+                // 모든 사용자 옵션 추가 (학과 선택과 상관 없이)
+                for (var user in usersName) {
+                    userDropdown.append(`<option value="${user}">${usersName[user]} (${user})</option>`);
+                }
+
+                // 이전에 선택된 회원이 여전히 존재하는 경우, 선택 상태 복원
+                if (selectedUser && usersName[selectedUser]) {
+                    userDropdown.val(selectedUser);
+                }
+            };
+
+
+            /** 
+             * 이벤트 핸들러 
+            **/ 
+            //로그인 하러가기
+            var showLoginHandler = function () {
+                $('#registerSection').hide();
+                $('#loginSection').show();
+            }
+
+            //회원가입 하러가기
+            var showRegisterHandler = function () {
+                $('#loginSection').hide();
+                $('#registerSection').show();
+            }
+           //회원 삭제 이벤트 핸들러
+           var userDeleteHandler = function () {
+                var isDelete = confirm('정말 삭제하시겠습니까?');
+                if (isDelete) {
+                    if (selectedUser === 'admin') {
+                        alert('관리자는 삭제될 수 없습니다.');
+                        return;
+                    }
+                    delete usersList[selectedUser];
+                    delete usersName[selectedUser];
+                    alert(`${selectedUser} 아이디를 성공적으로 삭제하였습니다.`);
+                    //삭제 후 갱신
+                    viewUserList();
+                    $('#user_select').prop('selectedIndex', 0);
+                    selectedUser = $('#user_select option:first').val();
+                    $('#selected_user_info').html('');
+                } else alert('취소하셨습니다.');
+            }
+
+            //회원 비밀번호 강제 변경 이벤트 핸들러
+            var userUpdateHandler = function () {
+                var update_password = prompt("강제로 변경할 비밀번호를 입력해주세요");
+                if (update_password == null) return;
+                var isUpdate = confirm(`${selectedUser} 아이디를 ${update_password} 비밀번호로 강제 변경하시겠습니까?`);
+
+                if (isUpdate) {
+                    if (selectedUser === 'admin') {
+                        alert('관리자 비밀번호는 변경할 수 없습니다.');
+                        return;
+                    }
+                    if (validateInput(selectedUser, update_password)) {
+                        //비밀번호 변경
+                        usersList[selectedUser] = update_password;
+                        alert('성공적으로 변경하셨습니다.');
+                    }
+                }
+            }
+
+            // 학과 추가 기능 핸들러 (버튼)
+            var addDeptHandler = function () {
+                var dept = $('#input_dept').val();
+
+                if (dept && !subjectList[dept]) {
+                    //학과 deptList 객체에 추가
+                    subjectList[dept] = {};
+                    alert('학과가 추가되었습니다.');
+                    $('#input_dept').val('');
+                    //업데이트 드롭다운
+                    deptUpdateHandler();
+                    //점수 학과 드롭다운도 업데이트
+                    updateScoreDropdown();
+                }
+                else if (subjectList.hasOwnProperty(dept)) {
+                    alert('이미 존재하는 학과입니다.');
+                } else {
+                    alert('학과를 입력해주세요.');
+                }
+            };
+            
+            //로그인 구현
+            var loginHandler = function () {
+                var id = $('#login_id').val();
+                var password = $('#login_password').val();
+
+                // 유효성 검사
+                if (!validateInput(id, password)) {
+                    return;
+                }
+                //로그인 성공 
+                else if (usersList[id] && usersList[id] === password) {
+                    $('#login_id').val('');
+                    $('#login_password').val('');
+                    $('#part1').hide();
+                    if (id == 'admin') {
+                        $('#part2').show();
+                        alert('로그인 성공: 관리자 페이지로 접속하셨습니다.');
+                        //로그인 횟수
+                        usersLoginCount[id] = ++usersLoginCount[id];
+                        //최근 로그인 날짜
+                        usersLoginDate[id] = new Date();
+                        successLogin(2, id);
+
+                        // 초기 과목 리스트 출력
+                        displaySubjectList();
+
+                        // 초기 학과 리스트 출력
+                        deptUpdateHandler();
+
+                        // 초기 점수 드롭다운 갱신
+                        updateScoreSelects();
+
+
+
+                        // 초기화
+                        updateScoreDropdown();
+
+                    }
+                    else {
+                        $('#part3').show();
+                        alert(`로그인 성공: ${usersName[id]}님 어서오세요! 자신의 학점을 확인할 수 있습니다.`);
+                        usersLoginCount[id] = ++usersLoginCount[id];
+                        //최근 로그인 날짜
+                        usersLoginDate[id] = new Date();
+                        successLogin(3, id);
+                    }
+                }
+                else alert("아이디가 존재하지 않거나, 아이디 또는 비밀번호가 틀립니다.");
+            }
+
+
+
+            //회원가입 구현
+            var registerHandler = function () {
+                var id = $('#register_id').val();
+                var password = $('#register_password').val();
+                var name = $('#register_name').val();
+
+                // 유효성 검사
+                if (!validateInput(id, password, name)) {
+                    return;
+                }
+
+                //회원가입 성공
+                else if (!usersList[id]) {
+                    usersList[id] = password;
+                    usersName[id] = name;
+                    usersLoginCount[id] = 0;
+                    usersLoginDate[id] = new Date();
+                    alert(`${usersName[id]}님 환영합니다. 회원가입에 성공하셨습니다! 로그인 해주세요!`);
+                    $('#registerSection').hide();
+                    $('#loginSection').show();
+                    $('#register_id').val('');
+                    $('#register_password').val('');
+                    $('#register_name').val('');
+
+                } else {
+                    alert('이미 존재하는 아이디입니다.');
+                }
+
+            }
             // 성적 설정 이벤트 핸들러
             var setScoresHandler = function () {
                 var selectedDept = $('#score_dept').val();
@@ -653,85 +692,49 @@
                 }
 
                 $('#scores_list').html(scoresListHTML);
-
-
             };
-            //성적 영역 드롭다운 업데이트
-            var updateScoreDropdown = function () {
-                var deptDropdown = $('#score_dept');
-                var subjectDropdown = $('#score_subject');
-                var userDropdown = $('#score_users');
+            //학과 삭제 기능 핸들러 
+            var removeDeptHandler = function () {
+                var dept = $('.dept_list').val();
+                var isDelete = confirm(`정말 ${dept} 학과를 삭제하시겠습니까?`);
+                if (isDelete) {
+                    delete subjectList[dept];
+                    deptUpdateHandler();
+                    displaySubjectList();
+                    alert(`${dept} 학과를 성공적으로 삭제하였습니다`);
+                }
+                else alert('취소하셨습니다.');
+            }
 
-                var selectedDept = deptDropdown.val();
-                var selectedSubject = subjectDropdown.val();
-                var selectedUser = userDropdown.val();
 
-                // 기존 옵션 초기화
-                deptDropdown.empty();
-                subjectDropdown.empty();
-                userDropdown.empty();
+            //학과 드롭다운 업데이트
+            var deptUpdateHandler = function () {
 
-                // 기본 옵션 추가
-                deptDropdown.append('<option value="">학과 선택</option>');
-                subjectDropdown.append('<option value="">과목 선택</option>');
-                userDropdown.append('<option value="">회원 선택</option>');
-
-                // subjectList의 각 학과에 대한 옵션 추가
+                var deptList = $('.dept_list');
+                deptList.empty(); //checkBox 리스트 초기화
                 for (var dept in subjectList) {
-                    deptDropdown.append('<option value="' + dept + '">' + dept + '</option>');
+                    deptList.append(`<option value='${dept}'>${dept}</option>`);
                 }
+            }
 
-                // 이전에 선택된 학과가 여전히 존재하는 경우, 선택 상태 복원
-                if (selectedDept && subjectList[selectedDept]) {
-                    deptDropdown.val(selectedDept);
+            // 과목 추가 이벤트 핸들러
+            var addSubjectHandler = function () {
+                var dept = $('.dept_list').val();
+                var subject = $('#input_subject').val();
+                var credits = $('#input_credits').val();
 
-                    var subjects = subjectList[selectedDept];
-                    for (var subject in subjects) {
-                        subjectDropdown.append('<option value="' + subject + '">' + subject + '</option>');
-                    }
+                if (isNaN(credits)) alert('학점에는 숫자만 입력해주세요');
 
-                    if (selectedSubject && subjects[selectedSubject]) {
-                        subjectDropdown.val(selectedSubject);
-                    }
-                }
-
-                // 모든 사용자 옵션 추가 (학과 선택과 상관 없이)
-                for (var user in usersName) {
-                    userDropdown.append(`<option value="${user}">${usersName[user]} (${user})</option>`);
-                }
-
-                // 이전에 선택된 회원이 여전히 존재하는 경우, 선택 상태 복원
-                if (selectedUser && usersName[selectedUser]) {
-                    userDropdown.val(selectedUser);
-                }
-            };
-
-
-
-
-            // 성적에 따른 학점 계산 함수
-            var calculateGradePoint = function (score) {
-                var gradePoint;
-                if (score >= 95) {
-                    gradePoint = 'A+';
-                } else if (score >= 90) {
-                    gradePoint = 'A';
-                } else if (score >= 85) {
-                    gradePoint = 'B+';
-                } else if (score >= 80) {
-                    gradePoint = 'B';
-                } else if (score >= 75) {
-                    gradePoint = 'C+';
-                } else if (score >= 70) {
-                    gradePoint = 'C';
-                } else if (score >= 65) {
-                    gradePoint = 'D+';
-                } else if (score >= 60) {
-                    gradePoint = 'D';
+                if (dept && subject && credits) {
+                    subjectList[dept][subject] = parseInt(credits);
+                    $('#input_subject').val('');
+                    $('#input_credits').val('');
+                    displaySubjectList();
+                    //드롭다운 갱신 (성적 영역)
+                    updateScoreDropdown();
                 } else {
-                    gradePoint = 'F';
+                    alert('과목과 학점을 모두 입력해주세요.');
                 }
-                return gradePoint;
             }
 
             //과목 삭제 이벤트 
