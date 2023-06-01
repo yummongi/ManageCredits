@@ -43,13 +43,13 @@
         <h2></h2>
         <button class="logout">로그아웃</button><br>
         <div id="user_list">
-            <h3>유저 정보</h3>
+            <h3>유저 정보 보기</h3>
             <select id="user_select">
                 <option value="회원 선택">유저 선택</option>
             </select>
             <div id="selected_user_info"></div>
-            <button id="selected_user_delete" style="display: none;">회원 삭제</button>
-            <button id="selected_user_update" style="display: none;">비밀번호 강제 변경</button>
+            <button id="selected_user_delete" style="display: none;">선택 회원 삭제</button>
+            <button id="selected_user_update" style="display: none;">선택 회원 비밀번호 변경</button>
 
         </div>
         <!-- 커스텀 과목 및 해당 과목에 대한 학점 추가-->
@@ -90,20 +90,19 @@
             <input type="text" id="input_scores" placeholder="성적(백분율)을 입력하세요.">
             <button id="set_scores">성적 설정</button>
             <button id="view_scores">모든 유저 성적 보기</button>
-            <!-- 컴퓨터공학과 프로그래밍언어론 100점 -->
+            <!-- 성적 정보 리스트 -->
             <div id="scores_list"></div>
         </div>
-
-
-
-
     </div>
 
     <!-- part3 일반 사용자 화면 -->
     <div id="part3" style="display: none;">
         <h2></h2>
-        <br><button class="logout">로그아웃</button></br>
-        <div id="userScoreSection"></div>
+        <button class="logout">로그아웃</button><br>
+        <div id="userScoreSection">
+
+        </div>
+
     </div>
 
     <script>
@@ -140,30 +139,14 @@
                 }
             };
 
-            // //등급별 평균점수
-            // var gradePointAverage = {
-            //     'A+': 4.5,
-            //     'A': 4.0,
-            //     'B+': 3.5,
-            //     'B': 3.0,
-            //     'C+': 2.5,
-            //     'C': 2.0,
-            //     'D+': 1.5,
-            //     'D': 1.0,
-            //     'F': 0
-            // };
-
             //성적 저장
             var usersScores = {
                 'momo2413': {
                     '컴퓨터공학과': {
                         '프로그래밍언어론': { '점수': 95, '학점': 'A+' },
                         '데이터베이스': { '점수': 85, '학점': 'B+' },
-                        // ... 다른 과목들
-                    },
-                    // ... 다른 학과
-                },
-                // ... 다른 사용자들
+                    }
+                }
             };
 
 
@@ -182,28 +165,28 @@
 
 
             //아이디 체크 (영문자 또는 영문 숫자 3~20자)
-            function isId(id) {
+            var isId = function(id) {
                 var regExp = /^[0-9a-zA-Z]{3,20}$/;
 
                 return regExp.test(id);
             }
 
             //비밀번호 체크 (5 ~ 16자 영문 또는 영문 숫자 조합)
-            function isPassword(password) {
+            var isPassword = function(password) {
                 var regExp = /^[0-9a-zA-Z]{5,16}$/;
 
                 return regExp.test(password);
             }
 
             //이름 체크 (한글,영문)
-            function isName(name) {
+            var isName = function(name) {
                 var regExp = /^[a-zA-Zㄱ-힣][a-zA-Zㄱ-힣 ]*$/;
 
                 return regExp.test(name);
             }
 
             // 유효성 검사 함수
-            function validateInput(id, password, name) {
+            var validateInput = function(id, password, name) {
                 if (id == '' || password == '') {
                     alert('아이디 또는 비밀번호를 입력해주세요.');
                     $(id).focus();
@@ -240,7 +223,6 @@
 
             /**part3**/
             // 일반 사용자 페이지 : 성적 정보
-            // 일반 사용자 페이지 : 성적 정보
             var viewUserScore = function (id) {
                 var userScores = usersScores[id];
                 console.log("User scores: ", userScores); // Debug line
@@ -248,6 +230,7 @@
 
                 var totalScore = 0;
                 var subjectCount = 0;
+                var hasNonNullScore = false; // 변수 추가
 
                 for (var dept in userScores) {
                     var scores = userScores[dept];
@@ -256,20 +239,20 @@
                         if (score !== null) {
                             totalScore += score;
                             subjectCount += 1;
-                            var grade = calculateGradePoint(score);  // 점수에 따른 등급을 구하는 함수를 추가해야 합니다.
+                            var grade = calculateGradePoint(score);
                             var credit = subjectList[dept][subject];
-                            $('#userScoreSection').append(`<p>${dept} ${subject} (${credit}학점) : ${score}점 ${grade}</p>`);
-
-                            var averageScore = totalScore / subjectCount;
-                            $('#userScoreSection').append(`<p>평균 점수: ${averageScore}</p>`);
+                            $('#userScoreSection').append(`<div class="user_score_info"><p>${dept} ${subject} (${credit}학점) : ${score}점 ${grade}</p></div>`);
+                            hasNonNullScore = true; // null이 아닌 score가 있음을 표시
                         }
-                        else $('#userScoreSection').html('<h1>성적 정보가 없습니다. 관리자에게 문의하세요</h1>')
                     }
                 }
-
-
+                if (!hasNonNullScore) {
+                    $('#userScoreSection').html('<h1>성적 정보가 없습니다. 관리자에게 문의하세요</h1>');
+                } else {
+                    var averageScore = totalScore / subjectCount;
+                    $('#userScoreSection').append(`<p>총 평균 점수: ${averageScore}</p>`);
+                }
             }
-
 
 
             //로그인 시 로그아웃 버튼, 환영 문구 추가
@@ -289,7 +272,7 @@
 
 
             // 날짜 포맷팅 함수
-            function formatDate(date) {
+            var formatDate = function(date) {
                 var year = date.getFullYear();
                 var month = String(date.getMonth() + 1).padStart(2, '0');
                 var day = String(date.getDate()).padStart(2, '0');
@@ -440,16 +423,6 @@
 
 
 
-            // 과목 삭제 이벤트 핸들러
-            var removeSubjectHandler = function (dept, subject) {
-                var isRemove = confirm(`'${subject}' 과목을 삭제하시겠습니까?`);
-                if (isRemove) {
-                    //해당 학과에서 과목 삭제
-                    delete subjectList[dept][subject];
-                    displaySubjectList();
-                }
-            }
-
             // 설정된 과목 리스트 출력
             var displaySubjectList = function () {
                 var subjectListHTML = '';
@@ -544,8 +517,6 @@
 
             }
 
-
-
             /** part2 
              1. 선택한 유저 정보 출력 
              2. 선택한 유저 회원 삭제
@@ -567,6 +538,7 @@
              *   }
              * };
              * **/
+
             var initializeUserScores = function () {
                 for (var user in usersList) {
                     usersScores[user] = {};
@@ -670,7 +642,9 @@
                                 var score = usersScores[user][dept][subject];
 
                                 if (score !== null) {
-                                    scoresListHTML += `<p>${dept} ${subject} (${credits}학점) ${score}점 : ${calculateGradePoint(score)}</p>`;
+                                    var grade = calculateGradePoint(score);
+                                    //<p>${dept} ${subject} (${credits}학점) <span class="remove" data-dept="${dept}" data-subject="${subject}">X</span></p>`;
+                                    scoresListHTML += `<div class ="score-info"><p>${dept} ${subject} (${credits}학점) ${score}점 ${grade} <span class="remove-score" data-user="${user}" data-dept="${dept}" data-subject="${subject}">X</span></p>`;
                                 }
                             }
                         }
@@ -678,6 +652,8 @@
                 }
 
                 $('#scores_list').html(scoresListHTML);
+
+
             };
             //성적 영역 드롭다운 업데이트
             var updateScoreDropdown = function () {
@@ -757,36 +733,39 @@
                 return gradePoint;
             }
 
-
-
-
-
-
-
-
             //과목 삭제 이벤트 
             $(document).on('click', '.remove', function () {
                 var dept = $(this).data('dept');
                 var subject = $(this).data('subject');
-                removeSubjectHandler(dept, subject);
+                var isRemove = confirm(`'${subject}' 과목을 삭제하시겠습니까?`);
+                if (isRemove) {
+                    //해당 학과에서 과목 삭제
+                    delete subjectList[dept][subject];
+                    displaySubjectList();
+                }
             });
+            //성적 삭제 이벤트 
+            $(document).on('click', '.remove-score', function () {
+
+                var user = $(this).data('user');
+                var dept = $(this).data('dept');
+                var subject = $(this).data('subject');
+                var isRemove = confirm(`${user} 님의 성적을 삭제하시겠습니까?`);
+                if (isRemove) {
+                    // 해당 성적 데이터 삭제
+                    usersScores[user][dept][subject] = null;
+
+                    // 성적 정보 다시 로드
+                    viewAllUsersScoresHandler();
+                }
+            });
+
 
             // 학과 선택, 과목 선택, 유저 선택 셀렉트 박스 변경 이벤트 핸들러
             $('#score_dept').on('change', function () {
                 var selectedDept = $(this).val();
                 updateSubjectSelect(selectedDept);
             });
-
-            // $('#score_subject').on('change', function () {
-            //     var selectedDept = $('#score_dept').val();
-            //     var selectedSubject = $(this).val();
-            //     var userList = $('#score_users');
-            //     userList.empty();
-            //     userList.append('<option value="회원 선택">유저 선택</option>');
-            //     for (var user in usersList) {
-            //         userList.append('<option value="' + user + '">' + usersName[user] + ' (' + user + ')</option>');
-            //     }
-            // });
 
             $('#score_users').on('change', function () {
                 var selectedUser = $(this).val();
@@ -799,9 +778,7 @@
                 }
             });
 
-
-
-            // 초기화
+            // 초기화 (usersScores)
             initializeUserScores();
             //이벤트 핸들러 등록
             $('#showLoginSection').on('click', showLoginHandler)
