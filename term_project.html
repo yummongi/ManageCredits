@@ -38,14 +38,14 @@
 
     <!-- part2 관리자 화면 -->
 
-    <div id="part2" style="display: none;border: 1px solid black;">
+    <div id="part2" style="display: none;">
         <!--유저 회원 리스트 관리 [모든 유저 아이디 검색]-->
         <h2></h2>
-        <br><button class="logout">로그아웃</button></br>
+        <button class="logout">로그아웃</button><br>
         <div id="user_list">
             <h3>유저 정보</h3>
             <select id="user_select">
-                <option value="">유저 선택</option>
+                <option value="회원 선택">유저 선택</option>
             </select>
             <div id="selected_user_info"></div>
             <button id="selected_user_delete" style="display: none;">회원 삭제</button>
@@ -53,12 +53,44 @@
 
         </div>
         <!-- 커스텀 과목 및 해당 과목에 대한 학점 추가-->
-        <div id = "subject_list">
+        <div id="subject">
             <h3>과목 추가</h3>
-            <input type="text" id = "subject" placeholder="추가할 과목 입력">
-            <input type="text" id = "credits" placeholder="해당 과목에 대한 학점">
-            <button id = "add_subject">과목 추가</button>
+            <!-- 학과 선택 박스 만들어야함 -->
+            
+            
+            <select class="dept_list">
+                <option value="학과 선택">학과 선택</option>
+            </select>
+
+            <input type="text" id="input_subject" placeholder="추가할 과목 입력">
+            <input type="text" id="input_credits" placeholder="해당 과목에 대한 학점">
+
+            <button id="remove_dept">선택 학과 삭제</button>
+            <button id="add_subject">입력 과목 추가</button>
+
+            <input type="text" id="input_dept" placeholder="추가할 학과 입력">
+            <button id="add_dept">입력 학과 추가</button>
+
+            <h3>설정된 과목 리스트</h3>
+            <div id="subject_list"></div>
+            <br>
         </div>
+
+        <div id="score">
+
+            <select class="dept_list">
+                <option value="학과 선택">학과 선택</option>
+            </select>
+            <select class="subject_list">
+                <option value="과목 선택">과목 선택</option>
+            </select>
+            <select class="user_list">
+                <option value="회원 선택">유저 선택</option>
+            </select>
+            <input type="text" id ="input_scores" placeholder="성적(백분율)을 입력하세요.">
+            <button id="set_scores">성적 설정</button>
+        </div>
+        
 
 
 
@@ -95,14 +127,16 @@
                 admin: new Date(),
                 momo2413: new Date()
             }
-
-            //과목,학점  저장
+            
+            //과목,학점
             var subjectList = {
-                '프로그래밍언어론': 3
-            }
+                '컴퓨터공학과': {
+                    '프로그래밍언어론': 3,
+                    '데이터베이스': 2
+                }
+            };
 
 
-            //
 
             //로그인 하러가기
             var showLoginHandler = function () {
@@ -125,7 +159,6 @@
             }
 
             //비밀번호 체크 (5 ~ 16자 영문 또는 영문 숫자 조합)
-
             function isPassword(password) {
                 var regExp = /^[0-9a-zA-Z]{5,16}$/;
 
@@ -138,7 +171,6 @@
 
                 return regExp.test(name);
             }
-
 
             // 유효성 검사 함수
             function validateInput(id, password, name) {
@@ -199,6 +231,8 @@
 
             //선택한 회원 유저
             var selectedUser;
+            //선택한 학과
+            var selectedDept;
 
             //관리자 페이지 : 유저 정보
             var userSelectHandler = function () {
@@ -249,7 +283,9 @@
             //회원 비밀번호 강제 변경 이벤트 핸들러
             var userUpdateHandler = function () {
                 var update_password = prompt("강제로 변경할 비밀번호를 입력해주세요");
+                if (update_password == null) return;
                 var isUpdate = confirm(`${selectedUser} 아이디를 ${update_password} 비밀번호로 강제 변경하시겠습니까?`);
+                
                 if (isUpdate) {
                     if (selectedUser === 'admin') {
                         alert('관리자 비밀번호는 변경할 수 없습니다.');
@@ -262,6 +298,94 @@
                     }
                 }
             }
+
+            // 학과 추가 기능 핸들러 (버튼)
+            var addDeptHandler = function () {
+                var dept = $('#input_dept').val();
+
+                if (dept && !subjectList[dept]) {
+                    //학과 deptList 객체에 추가
+                    subjectList[dept] = {};
+                    alert('학과가 추가되었습니다.');
+                    $('#input_dept').val('');
+                    //업데이트 체크박스
+                    deptUpdateHandler();
+                }
+                else if (subjectList.hasOwnProperty(dept)) {
+                    alert('이미 존재하는 학과입니다.');
+                } else {
+                    alert('학과를 입력해주세요.');
+                }
+                };
+            //학과 삭제 기능 핸들러 
+
+            var removeDeptHandler = function() {
+                var dept =  $('.dept_list').val();
+                var isDelete = confirm(`정말 ${dept} 학과를 삭제하시겠습니까?`);
+                if (isDelete) {
+                    delete subjectList[dept];
+                    deptUpdateHandler();
+                    displaySubjectList();
+                    alert(`${dept} 학과를 성공적으로 삭제하였습니다`);
+                }
+                else alert('취소하셨습니다.');
+            }
+            
+            //선택한 학과 체크박스
+
+
+            //학과 체크박스 업데이트
+            var deptUpdateHandler = function() {
+                
+                var deptList = $('.dept_list');
+                deptList.empty(); //checkBox 리스트 초기화
+                for (var dept in subjectList) {
+                    deptList.append(`<option value='${dept}'>${dept}</option>`);
+                }
+            }
+            
+            //학과 추가 이벤트 핸들러
+            $('#add_dept').on('click', addDeptHandler);
+            $('#remove_dept').on('click', removeDeptHandler);
+            // 과목 추가 이벤트 핸들러
+            var addSubjectHandler = function () {
+                var dept = $('.dept_list').val();
+                var subject = $('#input_subject').val();
+                var credits = $('#input_credits').val();
+
+                if(isNaN(credits)) alert('학점에는 숫자만 입력해주세요');
+
+                if (dept && subject && credits) {
+                    subjectList[dept][subject] = parseInt(credits);
+                    $('#input_subject').val('');
+                    $('#input_credits').val('');
+                    displaySubjectList();
+                } else {
+                    alert('과목과 학점을 모두 입력해주세요.');
+                }
+            }
+
+            // 과목 삭제 이벤트 핸들러
+            var removeSubjectHandler = function (dept, subject) {
+                var isRemove = confirm(`'${subject}' 과목을 삭제하시겠습니까?`);
+                if (isRemove) {
+                    //해당 학과에서 과목 삭제
+                    delete subjectList[dept][subject];
+                    displaySubjectList();
+                }
+            }
+
+            // 설정된 과목 리스트 출력
+            var displaySubjectList = function () {
+            var subjectListHTML = '';
+            for (var dept in subjectList) {
+                for (var subject in subjectList[dept]) {
+                    var credits = subjectList[dept][subject];
+                subjectListHTML += `<p>${dept} ${subject} (${credits}학점) <span class="remove" data-dept="${dept}" data-subject="${subject}">X</span></p>`;
+                }
+                $('#subject_list').html(subjectListHTML);
+            }
+        };
 
 
             //로그인 구현
@@ -286,6 +410,14 @@
                         //최근 로그인 날짜
                         usersLoginDate[id] = new Date();
                         successLogin(2, id);
+
+                        // 초기 과목 리스트 출력
+                        displaySubjectList();
+
+                        // 초기 학과 리스트 출력
+                        deptUpdateHandler();
+
+
                     }
                     else {
                         $('#part3').show();
@@ -342,7 +474,7 @@
 
 
 
-            //이벤트 등록
+            //이벤트 핸들러 등록
             $('#showLoginSection').on('click', showLoginHandler)
             $('#showRegisterSection').on('click', showRegisterHandler)
             $('#login').on('click', loginHandler)
@@ -350,6 +482,14 @@
             $('#user_select').on('change', userSelectHandler);
             $('#selected_user_delete').on('click', userDeleteHandler);
             $('#selected_user_update').on('click', userUpdateHandler);
+            $('#add_subject').on('click', addSubjectHandler);
+
+            //과목 삭제 이벤트 
+            $(document).on('click', '.remove', function () {
+                var dept = $(this).data('dept');
+                var subject = $(this).data('subject');
+                removeSubjectHandler(dept, subject);
+            });
         });
     </script>
 </body>
