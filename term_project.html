@@ -32,6 +32,9 @@
             <input type="text" id="register_id" placeholder="아이디를 입력하세요.">
             <input type="password" id="register_password" placeholder="비밀번호를 입력하세요">
             <input type="text" id="register_name" placeholder="이름을 입력하세요">
+            <select id = "register_dept">
+                <option value="학과 선택">학과 선택</option>
+            </select>
             <button id="register">회원가입</button>
         </div>
     </div>
@@ -99,9 +102,9 @@
     <div id="part3" style="display: none;">
         <h2></h2>
         <button class="logout">로그아웃</button><br>
-        <div id="userScoreSection">
-
-        </div>
+        <br>
+        <h3></h3>
+        <div id="userScoreSection"></div>
 
     </div>
 
@@ -150,6 +153,13 @@
                 }
             };
 
+            //학과 저장
+            var usersDept = {
+                admin: '관리',
+                momo2413: '컴퓨터공학과'
+
+            }
+
             // 성적에 따른 학점 계산 함수
             var calculateGradePoint = function (score) {
                 var gradePoint;
@@ -174,10 +184,6 @@
                 }
                 return gradePoint;
             }
-
-
-
-
 
             //아이디 체크 (영문자 또는 영문 숫자 3~20자)
             var isId = function(id) {
@@ -272,7 +278,7 @@
 
             //로그인 시 로그아웃 버튼, 환영 문구 추가
             var successLogin = function (partNum, id) {
-                $(`#part${partNum} h2`).text(usersName[id] + '님 어서오세요!')
+                $(`#part${partNum} h2`).text(`${usersName[id]} 님 어서오세요! (${usersDept[id]})`)
                 $(`.logout`).on('click', logoutHandler)
 
                 // 관리자로 로그인한 경우 유저 정보 출력
@@ -496,6 +502,7 @@
             var showRegisterHandler = function () {
                 $('#loginSection').hide();
                 $('#registerSection').show();
+                initializeRegisterDeptDropdown();
             }
            //회원 삭제 이벤트 핸들러
            var userDeleteHandler = function () {
@@ -548,6 +555,8 @@
                     deptUpdateHandler();
                     //점수 학과 드롭다운도 업데이트
                     updateScoreDropdown();
+
+                    initializeRegisterDeptDropdown();
                 }
                 else if (subjectList.hasOwnProperty(dept)) {
                     alert('이미 존재하는 학과입니다.');
@@ -606,16 +615,30 @@
                 else alert("아이디가 존재하지 않거나, 아이디 또는 비밀번호가 틀립니다.");
             }
 
-
-
+            // 회원가입 화면 로드 시 학과 드롭다운을 초기화하는 함수
+            var initializeRegisterDeptDropdown = function () {
+                var registerDeptDropdown = $('#register_dept');
+                registerDeptDropdown.empty();
+                registerDeptDropdown.append('<option value="학과 선택">학과 선택</option>');
+                for (var dept in subjectList) {
+                    registerDeptDropdown.append('<option value="' + dept + '">' + dept + '</option>');
+                }
+            };
             //회원가입 구현
             var registerHandler = function () {
                 var id = $('#register_id').val();
                 var password = $('#register_password').val();
                 var name = $('#register_name').val();
-
+                var dept = $('#register_dept').val();
+                
                 // 유효성 검사
-                if (!validateInput(id, password, name)) {
+                if (!validateInput(id, password, name) || !dept) {
+                    return;
+                }
+
+                // 학과 선택 여부 확인
+                if (dept === '학과 선택') {
+                    alert('학과를 선택해주세요.');
                     return;
                 }
 
@@ -625,6 +648,12 @@
                     usersName[id] = name;
                     usersLoginCount[id] = 0;
                     usersLoginDate[id] = new Date();
+                    usersDept[id] = dept;
+                    usersScores[id] = {};
+                    usersScores[id][dept] = {}; // 선택한 학과 객체 초기화
+                    for (var subject in subjectList[dept]) {
+                        usersScores[id][dept][subject] = null; // 선택한 학과의 과목 초기화
+                    }
                     alert(`${usersName[id]}님 환영합니다. 회원가입에 성공하셨습니다! 로그인 해주세요!`);
                     $('#registerSection').hide();
                     $('#loginSection').show();
