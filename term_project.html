@@ -650,7 +650,9 @@
                     usersLoginDate[id] = new Date();
                     usersDept[id] = dept;
                     usersScores[id] = {};
-                    usersScores[id][dept] = {}; // 선택한 학과 객체 초기화
+                    for (var dept in subjectList) {
+                        usersScores[id][dept] = {};
+                    }
                     for (var subject in subjectList[dept]) {
                         usersScores[id][dept][subject] = null; // 선택한 학과의 과목 초기화
                     }
@@ -683,7 +685,11 @@
                     return;
                 }
 
+                if (!usersScores[selectedUser][selectedDept]) {
+                    usersScores[selectedUser][selectedDept] = {};
+                }
                 usersScores[selectedUser][selectedDept][selectedSubject] = parseFloat(inputScores);
+
                 alert('성적이 설정되었습니다.');
 
                 // 성적 설정 후 셀렉트 박스 초기화
@@ -691,7 +697,11 @@
                 $('#score_subject').val('과목 선택');
                 $('#score_users').val('회원 선택');
                 $('#input_scores').val('');
-
+                
+                // 과목 선택, 유저 선택, 성적 입력 부분 비활성화
+                $('#score_subject').prop('disabled', true);
+                $('#score_users').prop('disabled', true);
+                $('#input_scores').prop('disabled', true);
                 // 셀렉트 박스 업데이트
                 updateScoreSelects();
 
@@ -798,6 +808,19 @@
             $('#score_dept').on('change', function () {
                 var selectedDept = $(this).val();
                 updateSubjectSelect(selectedDept);
+
+
+                if (selectedDept !== '학과 선택' && Object.keys(subjectList[selectedDept]).length === 0) {
+                    // 선택된 학과에 과목이 없으면, 과목 선택, 유저 선택 드롭다운 및 성적 입력 칸을 비활성화
+                    $('#score_subject').prop('disabled', true);
+                    $('#score_users').prop('disabled', true);
+                    $('#input_scores').prop('disabled', true);
+                } else {
+                    // 과목이 있으면, 과목 선택, 유저 선택 드롭다운 및 성적 입력 칸을 활성화
+                    $('#score_subject').prop('disabled', false);
+                    $('#score_users').prop('disabled', false);
+                    $('#input_scores').prop('disabled', false);
+                }
             });
 
             $('#score_users').on('change', function () {
@@ -810,6 +833,20 @@
                     $('#set_scores').prop('disabled', true);
                 }
             });
+
+            function updateScoresInputState() {
+                var selectedDept = $('#score_dept').val();
+                var selectedSubject = $('#score_subject').val();
+                var selectedUser = $('#score_users').val();
+
+                if (selectedDept !== '학과 선택' && selectedSubject !== '과목 선택' && selectedUser !== '회원 선택') {
+                    $('#input_scores').prop('disabled', false);
+                } else {
+                    $('#input_scores').prop('disabled', true);
+                }
+            }
+
+            $('#score_dept, #score_subject, #score_users').change(updateScoresInputState);
 
             // 초기화 (usersScores)
             initializeUserScores();
