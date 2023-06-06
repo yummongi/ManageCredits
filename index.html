@@ -205,12 +205,12 @@
 
             // 유효성 검사 함수
             var validateInput = function (id, password, name) {
-                if (id == '' || password == '') {
+                if (id == '' || password == '' || id === undefined || password === undefined || password === undefined) {
                     alert('아이디, 비밀번호를 모두 입력해주세요.');
                     $(id).focus();
                     return false;
                 }
-                if (name = '') {
+                if (name = '' || name === undefined) {
                     alert('이름을 입력해주세요.');
                     $(name).focus();
                     return false;
@@ -229,7 +229,7 @@
                     $(password).focus();
                     return false;
                 }
-                else if (name && !isName(name)) {
+                else if (!isName(name)) {
                     alert('이름은 반드시 한글 또는 영어로 작성해야합니다.');
                     return false;
                 }
