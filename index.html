@@ -231,6 +231,7 @@
                 }
                 else if (!isName(name)) {
                     alert('이름은 반드시 한글 또는 영어로 작성해야합니다.');
+                    $(name).focuse();
                     return false;
                 }
 
@@ -666,11 +667,12 @@
                 // 학과 선택 여부 확인
                 if (name === '' || name == undefined) {
                     alert('이름을 입력해주세요.');
-                    name.focus();
+                    $('#register_name').focus();
                     return;
                 }
                 if (dept === '학과 선택') {
                     alert('학과를 선택해주세요.');
+                    $('#register_dept').focus();
                     return;
                 }
 
