@@ -205,12 +205,12 @@
 
             // 유효성 검사 함수
             var validateInput = function (id, password, name) {
-                if (id == '' || password == '' || id === undefined || password === undefined || password === undefined) {
+                if (id == '' || password == '' || id === undefined || password === undefined) {
                     alert('아이디, 비밀번호를 모두 입력해주세요.');
                     $(id).focus();
                     return false;
                 }
-                if (name = '' || name === undefined) {
+                if (name == '') {
                     alert('이름을 입력해주세요.');
                     $(name).focus();
                     return false;
@@ -242,7 +242,7 @@
             var logoutHandler = function () {
                 $('#part2').hide();
                 $('#part3').hide();
-                $('#part1').show();
+                $('#part1').show(1000);
             }
 
             /**part3**/
